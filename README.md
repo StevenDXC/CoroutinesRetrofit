@@ -2,8 +2,9 @@
 
 Retrofit with coroutines Adapter add kotlin extension,easy to use Retrofit in Kotlin
 
+[![](https://jitpack.io/v/StevenDXC/CoroutinesRetrofit.svg)](https://jitpack.io/#StevenDXC/CoroutinesRetrofit)
 
-## usage:
+## usage
 
 * API interface
 
@@ -37,5 +38,23 @@ request {
 }
 ```
 
+## dependency
 
+Add it in your root build.gradle at the end of repositories:
 
+```
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+Add the dependency
+
+```
+dependencies {
+    implementation 'com.github.StevenDXC:CoroutinesRetrofit:1.0'
+}
+```
