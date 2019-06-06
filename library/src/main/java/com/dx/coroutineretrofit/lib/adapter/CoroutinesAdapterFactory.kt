@@ -101,14 +101,13 @@ internal class CoroutinesAdapterFactory: CallAdapter.Factory(){
  * 将请求过程中抛出的异常转换为RequestError
  */
 internal inline fun Throwable.toRequestError(): RequestError {
-
     if(this is JsonSyntaxException
             || this is IllegalArgumentException
             || this is JsonIOException
             || this is JsonParseException){
-        return RequestError(RequestError.JSON_PARSE_ERROR_CODE,message ?: "Parse json error")
+        return RequestError(-1,message ?: "Parse json error")
     }
-    return RequestError(RequestError.IO_ERROR_CODE, message ?: "io error")
+    return RequestError(-1, message ?: "io error")
 }
 
 /**
