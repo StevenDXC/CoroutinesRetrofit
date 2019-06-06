@@ -6,10 +6,7 @@ import com.dx.coroutineretrofit.lib.error.RequestError
 import com.google.gson.JsonIOException
 import com.google.gson.JsonParseException
 import com.google.gson.JsonSyntaxException
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.CompletableDeferred
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.*
 import retrofit2.Call
 import retrofit2.CallAdapter
 import retrofit2.Response
@@ -24,7 +21,7 @@ internal class CoroutinesAdapterFactory: CallAdapter.Factory(){
     }
 
     override fun get(returnType: Type, annotations: Array<out Annotation>?, retrofit: Retrofit?): CallAdapter<*, *>? {
-        if (Deferred::class.java != CallAdapter.Factory.getRawType(returnType)) {
+        if (Deferred::class.java != getRawType(returnType)) {
             return null
         }
 
@@ -33,14 +30,14 @@ internal class CoroutinesAdapterFactory: CallAdapter.Factory(){
                     "Deferred return type must be parameterized as Deferred<Foo> or Deferred<out Foo>")
         }
 
-        val responseType = CallAdapter.Factory.getParameterUpperBound(0, returnType)
-        val rawDeferredType = CallAdapter.Factory.getRawType(responseType)
+        val responseType = getParameterUpperBound(0, returnType)
+        val rawDeferredType = getRawType(responseType)
         return if (rawDeferredType == Response::class.java) {
             if (responseType !is ParameterizedType) {
                 throw IllegalStateException(
                         "Response must be parameterized as Response<Foo> or Response<out Foo>")
             }
-            ResponseCallAdapter<Any>(CallAdapter.Factory.getParameterUpperBound(0, responseType))
+            ResponseCallAdapter<Any>(getParameterUpperBound(0, responseType))
         } else {
             BodyCallAdapter<Any>(responseType)
         }
@@ -57,7 +54,7 @@ internal class CoroutinesAdapterFactory: CallAdapter.Factory(){
                 }
             }
 
-            async (CommonPool){
+            GlobalScope.launch(Dispatchers.IO){
                 try {
                     val response = call.execute()
                     if(response.isSuccessful){
@@ -84,7 +81,7 @@ internal class CoroutinesAdapterFactory: CallAdapter.Factory(){
                     call.cancel()
                 }
             }
-            async (CommonPool){
+            GlobalScope.launch(Dispatchers.IO){
                 try {
                     val response = call.execute()
                     if(response.isSuccessful){
@@ -117,4 +114,4 @@ internal inline fun Throwable.toRequestError(): RequestError {
 /**
  * 根据HTTP响应码生成对应的错误
  */
-internal inline fun <T> Response<T>.failedError():RequestError = RequestError(code(), message())
+internal inline fun <T> Response<T>.failedError(): RequestError = RequestError(code(), message())

@@ -3,11 +3,7 @@
 package com.dx.coroutineretrofit.lib.request
 
 import com.dx.coroutineretrofit.lib.error.RequestError
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.cancelAndJoin
+import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*
 
@@ -20,9 +16,9 @@ val jobHolder = WeakHashMap<String, ArrayList<WeakReference<Deferred<Unit?>>>>()
  * @param action: the request action
  */
 @Suppress("unused")
-inline fun Any.request(noinline action: suspend () -> Unit): AsyncRequestHandler{
+inline fun Any.request(crossinline action: suspend () -> Unit): AsyncRequestHandler{
     val handler = AsyncRequestHandler()
-    val deferred = async(UI) {
+    val deferred = GlobalScope.async(Dispatchers.Main) {
         try {
             action.invoke()
         }catch (e: RequestError){
@@ -49,7 +45,7 @@ inline fun Any.request(noinline action: suspend () -> Unit): AsyncRequestHandler
 inline fun Any.cancelAllJobs(){
     val key = this.hashCode().toString()
     val list = jobHolder[key]
-    async (CommonPool){
+    GlobalScope.launch{
         list?.forEach {
             val deferred = it.get()
             if(deferred != null && deferred.isActive){
